@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import type { MarketSection, MarketItem } from "@/types/market";
 import { MarketCard, MarketCardSkeleton } from "@/components/MarketCard";
 
@@ -95,8 +95,26 @@ function buildSections(
         emoji: "📈",
         items: pick("^TNX", "^IRX", "YIELD_SPREAD"),
       },
+      {
+        id: "mag7",
+        title: "Magnificent 7",
+        emoji: "🚀",
+        items: pick("NVDA", "AAPL", "MSFT", "AMZN", "GOOGL", "META", "TSLA"),
+      },
     ];
   }
+}
+
+// ── 스파크라인: localStorage에 가격 기록 축적 ─────────────
+const SPARK_KEY = "hhh_spark_v1";
+const SPARK_MAX = 50;
+
+function loadSpark(): Record<string, number[]> {
+  if (typeof window === "undefined") return {};
+  try { return JSON.parse(localStorage.getItem(SPARK_KEY) ?? "{}"); } catch { return {}; }
+}
+function saveSpark(data: Record<string, number[]>) {
+  try { localStorage.setItem(SPARK_KEY, JSON.stringify(data)); } catch {}
 }
 
 export default function Dashboard() {
@@ -105,6 +123,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [mode, setMode] = useState<Mode>("kospi");
+  const [sparklines, setSparklines] = useState<Record<string, number[]>>({});
+  const sparkRef = useRef<Record<string, number[]>>({});
 
   const fetchData = useCallback(async (isAuto = false) => {
     if (isAuto) setRefreshing(true);
@@ -131,6 +151,35 @@ export default function Dashboard() {
       setRefreshing(false);
     }
   }, []);
+
+  // localStorage에서 스파크라인 불러오기 (최초 1회)
+  useEffect(() => {
+    const stored = loadSpark();
+    sparkRef.current = stored;
+    setSparklines(stored);
+  }, []);
+
+  // 가격 갱신될 때마다 스파크라인 기록 추가
+  useEffect(() => {
+    if (Object.keys(bySymbol).length === 0) return;
+    const updated = { ...sparkRef.current };
+    let changed = false;
+    for (const [sym, item] of Object.entries(bySymbol)) {
+      if (item.price > 0 && !item.error) {
+        const hist = updated[sym] ?? [];
+        const last = hist[hist.length - 1];
+        if (last !== item.price) {
+          updated[sym] = [...hist.slice(-(SPARK_MAX - 1)), item.price];
+          changed = true;
+        }
+      }
+    }
+    if (changed) {
+      sparkRef.current = updated;
+      setSparklines(updated);
+      saveSpark(updated);
+    }
+  }, [bySymbol]);
 
   useEffect(() => {
     fetchData();
@@ -298,7 +347,11 @@ export default function Dashboard() {
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                   {sec.items.map((item) => (
-                    <MarketCard key={item.symbol} item={item} />
+                    <MarketCard
+                      key={item.symbol}
+                      item={item}
+                      sparkline={sparklines[item.symbol]}
+                    />
                   ))}
                 </div>
               </section>

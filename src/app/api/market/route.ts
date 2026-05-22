@@ -30,6 +30,14 @@ const SYMBOLS: Record<string, { name: string; suffix?: string }> = {
   // 금리
   '^TNX':     { name: '미 10년물 금리', suffix: '%' },
   '^IRX':     { name: '미 단기 금리 (3M)', suffix: '%' },
+  // Magnificent 7
+  'NVDA':  { name: '엔비디아' },
+  'AAPL':  { name: '애플' },
+  'MSFT':  { name: '마이크로소프트' },
+  'AMZN':  { name: '아마존' },
+  'GOOGL': { name: '알파벳 (구글)' },
+  'META':  { name: '메타' },
+  'TSLA':  { name: '테슬라' },
 };
 
 const SYMBOL_LIST = Object.keys(SYMBOLS);
@@ -86,6 +94,7 @@ async function fetchWithFallback(symbols: string[]): Promise<MarketItem[]> {
           'regularMarketPreviousClose',
           'currency',
           'shortName',
+          'marketState',
         ],
       },
       { validateResult: false }
@@ -102,6 +111,7 @@ async function fetchWithFallback(symbols: string[]): Promise<MarketItem[]> {
         changePercent: q.regularMarketChangePercent ?? 0,
         currency: q.currency ?? 'USD',
         suffix: meta.suffix,
+        marketState: q.marketState,
       });
     }
   } catch {
@@ -175,6 +185,12 @@ export async function GET() {
       title: '금리 / 채권',
       emoji: '📈',
       items: pick('^TNX', '^IRX', 'YIELD_SPREAD'),
+    },
+    {
+      id: 'mag7',
+      title: 'Magnificent 7',
+      emoji: '🚀',
+      items: pick('NVDA', 'AAPL', 'MSFT', 'AMZN', 'GOOGL', 'META', 'TSLA'),
     },
   ];
 
