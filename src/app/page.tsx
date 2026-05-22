@@ -41,7 +41,7 @@ function buildSections(
         id: "key",
         title: "핵심 지표",
         emoji: "📊",
-        items: pick("^KS11", "^KQ11", "USDKRW=X", "^VIX", "BTC-USD"),
+        items: pick("^KS11", "^KQ11", "USDKRW=X", "^VIX", "CNN_FG", "BTC-USD"),
       },
       {
         id: "global",
@@ -53,13 +53,13 @@ function buildSections(
         id: "commodity",
         title: "원자재",
         emoji: "⚡",
-        items: pick("GC=F", "CL=F"),
+        items: pick("GC=F", "CL=F", "NG=F", "DX-Y.NYB"),
       },
       {
         id: "rates",
         title: "금리 / 채권",
         emoji: "📈",
-        items: pick("^TNX", "^IRX"),
+        items: pick("^TNX", "^IRX", "YIELD_SPREAD"),
       },
     ];
   } else {
@@ -87,13 +87,13 @@ function buildSections(
         id: "safe",
         title: "안전자산",
         emoji: "🔒",
-        items: pick("USDKRW=X", "GC=F", "CL=F", "^VIX", "BTC-USD"),
+        items: pick("USDKRW=X", "DX-Y.NYB", "GC=F", "CL=F", "NG=F", "^VIX", "CNN_FG", "BTC-USD"),
       },
       {
         id: "rates",
         title: "금리 / 채권",
         emoji: "📈",
-        items: pick("^TNX", "^IRX"),
+        items: pick("^TNX", "^IRX", "YIELD_SPREAD"),
       },
     ];
   }
@@ -117,6 +117,10 @@ export default function Dashboard() {
         for (const item of sec.items) {
           map[item.symbol] = item;
         }
+      }
+      // CNN F&G, 장단기 금리차 등 특수 계산 아이템
+      for (const item of data.extras ?? []) {
+        map[item.symbol] = item;
       }
       setBySymbol(map);
       setUpdatedAt(data.updatedAt ?? "");

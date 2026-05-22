@@ -75,11 +75,13 @@ export function MarketCard({ item }: Props) {
               color: isUp ? "var(--green)" : "var(--red)",
             }}
           >
-            {formatChangePct(item.changePercent)}
+            {item.label ?? formatChangePct(item.changePercent)}
           </span>
-          <span className="text-xs tabular-nums" style={{ color: "var(--text-faint)" }}>
-            {formatChange(item.change, item.suffix)}
-          </span>
+          {!item.label && (
+            <span className="text-xs tabular-nums" style={{ color: "var(--text-faint)" }}>
+              {formatChange(item.change, item.suffix)}
+            </span>
+          )}
         </div>
       )}
 

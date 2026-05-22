@@ -6,6 +6,7 @@ export interface MarketItem {
   changePercent: number;
   currency?: string;
   suffix?: string; // e.g. "%" for yields
+  label?: string;  // 뱃지 텍스트 override (e.g. "탐욕", "공포")
   error?: boolean;
 }
 
