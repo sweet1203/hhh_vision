@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import type { MarketSection } from "@/types/market";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import type { MarketSection, MarketItem } from "@/types/market";
 import { MarketCard, MarketCardSkeleton } from "@/components/MarketCard";
 
 const REFRESH_INTERVAL = 30_000; // 30초
+
+type Mode = "kospi" | "nasdaq";
 
 function formatTime(iso: string) {
   const d = new Date(iso);
@@ -15,7 +17,6 @@ function formatTime(iso: string) {
   });
 }
 
-// Skeleton loader for a section
 function SectionSkeleton({ count = 5 }: { count?: number }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
@@ -26,18 +27,98 @@ function SectionSkeleton({ count = 5 }: { count?: number }) {
   );
 }
 
+// 심볼 맵으로부터 모드별 섹션 구성
+function buildSections(
+  bySymbol: Record<string, MarketItem>,
+  mode: Mode
+): MarketSection[] {
+  const pick = (...syms: string[]): MarketItem[] =>
+    syms.map((s) => bySymbol[s]).filter(Boolean);
+
+  if (mode === "kospi") {
+    return [
+      {
+        id: "key",
+        title: "핵심 지표",
+        emoji: "🌸",
+        items: pick("^KS11", "^KQ11", "USDKRW=X", "^VIX", "BTC-USD"),
+      },
+      {
+        id: "global",
+        title: "글로벌 지수",
+        emoji: "🌍",
+        items: pick("NQ=F", "ES=F", "YM=F", "^N225"),
+      },
+      {
+        id: "commodity",
+        title: "원자재",
+        emoji: "✨",
+        items: pick("GC=F", "CL=F"),
+      },
+      {
+        id: "rates",
+        title: "금리 / 채권",
+        emoji: "💮",
+        items: pick("^TNX", "^IRX"),
+      },
+    ];
+  } else {
+    // NASDAQ 모드 — 러셀2000 선물 + 현물 모두 표시
+    return [
+      {
+        id: "us",
+        title: "미국 지수",
+        emoji: "🦅",
+        items: pick("NQ=F", "ES=F", "YM=F", "RTY=F", "^RUT"),
+      },
+      {
+        id: "tech",
+        title: "기술 / 반도체",
+        emoji: "💻",
+        items: pick("^SOX"),
+      },
+      {
+        id: "asia",
+        title: "아시아 지수",
+        emoji: "🌏",
+        items: pick("^N225", "^KS11", "^KQ11"),
+      },
+      {
+        id: "safe",
+        title: "안전자산",
+        emoji: "🔒",
+        items: pick("USDKRW=X", "GC=F", "CL=F", "^VIX", "BTC-USD"),
+      },
+      {
+        id: "rates",
+        title: "금리 / 채권",
+        emoji: "💮",
+        items: pick("^TNX", "^IRX"),
+      },
+    ];
+  }
+}
+
 export default function Dashboard() {
-  const [sections, setSections] = useState<MarketSection[]>([]);
+  const [bySymbol, setBySymbol] = useState<Record<string, MarketItem>>({});
   const [updatedAt, setUpdatedAt] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [mode, setMode] = useState<Mode>("kospi");
 
   const fetchData = useCallback(async (isAuto = false) => {
     if (isAuto) setRefreshing(true);
     try {
       const res = await fetch("/api/market", { cache: "no-store" });
       const data = await res.json();
-      setSections(data.sections ?? []);
+      // 모든 아이템을 심볼 맵으로 평탄화
+      const map: Record<string, MarketItem> = {};
+      for (const sec of data.sections ?? []) {
+        for (const item of sec.items) {
+          map[item.symbol] = item;
+        }
+      }
+      setBySymbol(map);
       setUpdatedAt(data.updatedAt ?? "");
     } catch (e) {
       console.error("fetch error", e);
@@ -53,6 +134,13 @@ export default function Dashboard() {
     return () => clearInterval(timer);
   }, [fetchData]);
 
+  const sections = useMemo(
+    () => buildSections(bySymbol, mode).filter((s) => s.items.length > 0),
+    [bySymbol, mode]
+  );
+
+  const toggleMode = () => setMode((m) => (m === "kospi" ? "nasdaq" : "kospi"));
+
   return (
     <div className="min-h-dvh px-4 py-6 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -62,7 +150,7 @@ export default function Dashboard() {
             {/* Title */}
             <div className="flex items-center gap-2.5">
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight gradient-title">
-                🌸 KOSPI 선행지표
+                {mode === "kospi" ? "🌸 KOSPI 선행지표" : "🦅 NASDAQ 지수"}
               </h1>
               <span
                 className="hidden sm:block text-xs font-medium px-2 py-0.5 rounded-full border"
@@ -72,44 +160,88 @@ export default function Dashboard() {
               </span>
             </div>
 
-            {/* Refresh indicator */}
-            <div className="flex items-center gap-2">
-              {refreshing && (
-                <span
-                  className="text-xs animate-pulse"
-                  style={{ color: "var(--pink)" }}
-                >
-                  새로고침 중…
-                </span>
-              )}
-              {updatedAt && (
-                <span
-                  className="text-xs font-mono"
-                  style={{ color: "var(--text-faint)" }}
-                >
-                  🕐 {formatTime(updatedAt)}
-                </span>
-              )}
-              <button
-                onClick={() => fetchData(true)}
-                className="text-xs px-3 py-1.5 rounded-lg border transition-all duration-150 active:scale-95"
-                style={{
-                  borderColor: "var(--border-glow)",
-                  color: "var(--pink)",
-                  background: "rgba(244,114,182,0.08)",
-                }}
+            {/* 오른쪽: 모드 토글 + 새로고침 */}
+            <div className="flex items-center gap-3">
+              {/* 모드 토글 버튼 (데스크탑) */}
+              <div
+                className="hidden sm:flex items-center rounded-xl border p-1 gap-0.5"
+                style={{ borderColor: "var(--border)", background: "var(--surface)" }}
               >
-                ↺ 새로고침
-              </button>
+                <button
+                  onClick={() => setMode("kospi")}
+                  className="text-xs px-3 py-1.5 rounded-lg transition-all duration-200 font-semibold"
+                  style={
+                    mode === "kospi"
+                      ? {
+                          background:
+                            "linear-gradient(135deg, var(--pink-dark), var(--pink-bright))",
+                          color: "#fff",
+                          boxShadow: "0 2px 8px rgba(236,72,153,0.4)",
+                        }
+                      : { color: "var(--text-muted)" }
+                  }
+                >
+                  🇰🇷 KOSPI
+                </button>
+                <button
+                  onClick={() => setMode("nasdaq")}
+                  className="text-xs px-3 py-1.5 rounded-lg transition-all duration-200 font-semibold"
+                  style={
+                    mode === "nasdaq"
+                      ? {
+                          background:
+                            "linear-gradient(135deg, var(--pink-dark), var(--pink-bright))",
+                          color: "#fff",
+                          boxShadow: "0 2px 8px rgba(236,72,153,0.4)",
+                        }
+                      : { color: "var(--text-muted)" }
+                  }
+                >
+                  🇺🇸 NASDAQ
+                </button>
+              </div>
+
+              {/* 새로고침 인디케이터 + 버튼 */}
+              <div className="flex items-center gap-2">
+                {refreshing && (
+                  <span
+                    className="text-xs animate-pulse"
+                    style={{ color: "var(--pink)" }}
+                  >
+                    새로고침 중…
+                  </span>
+                )}
+                {updatedAt && (
+                  <span
+                    className="text-xs font-mono"
+                    style={{ color: "var(--text-faint)" }}
+                  >
+                    🕐 {formatTime(updatedAt)}
+                  </span>
+                )}
+                <button
+                  onClick={() => fetchData(true)}
+                  className="text-xs px-3 py-1.5 rounded-lg border transition-all duration-150 active:scale-95"
+                  style={{
+                    borderColor: "var(--border-glow)",
+                    color: "var(--pink)",
+                    background: "rgba(244,114,182,0.08)",
+                  }}
+                >
+                  ↺ 새로고침
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Subtitle */}
+          {/* 부제목 */}
           <p className="mt-1 text-sm" style={{ color: "var(--text-faint)" }}>
-            코스피 · 글로벌 지수 · 원자재 · 금리 — 30초마다 자동 갱신
+            {mode === "kospi"
+              ? "코스피 · 글로벌 지수 · 원자재 · 금리 — 30초마다 자동 갱신"
+              : "나스닥100 · S&P500 · 러셀2000 · 반도체 — 30초마다 자동 갱신"}
           </p>
 
-          {/* Divider */}
+          {/* 구분선 */}
           <div
             className="mt-4 h-px"
             style={{
@@ -120,12 +252,12 @@ export default function Dashboard() {
           />
         </header>
 
-        {/* ── Sections ── */}
+        {/* ── 섹션 목록 ── */}
         {loading ? (
           <div className="space-y-10">
             {[
               { title: "🌸 핵심 지표", count: 5 },
-              { title: "🌍 글로벌 지수", count: 7 },
+              { title: "🌍 글로벌 지수", count: 4 },
               { title: "✨ 원자재", count: 2 },
               { title: "💮 금리 / 채권", count: 2 },
             ].map((s) => (
@@ -141,10 +273,9 @@ export default function Dashboard() {
             ))}
           </div>
         ) : (
-          <div className="space-y-10 fade-in">
+          <div key={mode} className="space-y-10 fade-in">
             {sections.map((sec) => (
               <section key={sec.id}>
-                {/* Section heading */}
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-lg">{sec.emoji}</span>
                   <h2
@@ -161,7 +292,6 @@ export default function Dashboard() {
                   </span>
                 </div>
 
-                {/* Cards grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                   {sec.items.map((item) => (
                     <MarketCard key={item.symbol} item={item} />
@@ -173,7 +303,7 @@ export default function Dashboard() {
         )}
 
         {/* ── Footer ── */}
-        <footer className="mt-16 pb-8">
+        <footer className="mt-16 pb-20 sm:pb-8">
           <div
             className="h-px mb-6"
             style={{
@@ -193,6 +323,19 @@ export default function Dashboard() {
           </p>
         </footer>
       </div>
+
+      {/* ── 모바일 플로팅 토글 버튼 ── */}
+      <button
+        onClick={toggleMode}
+        className="sm:hidden fixed bottom-6 right-5 w-14 h-14 rounded-full flex items-center justify-center text-2xl transition-transform duration-200 active:scale-90 z-50"
+        style={{
+          background: "linear-gradient(135deg, var(--pink-dark), var(--pink-bright))",
+          boxShadow: "0 4px 24px rgba(236,72,153,0.5)",
+        }}
+        aria-label={mode === "kospi" ? "미국 지수로 전환" : "한국 지수로 전환"}
+      >
+        {mode === "kospi" ? "🇺🇸" : "🇰🇷"}
+      </button>
     </div>
   );
 }
