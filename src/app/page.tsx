@@ -40,7 +40,7 @@ function buildSections(
       {
         id: "key",
         title: "핵심 지표",
-        emoji: "🌸",
+        emoji: "📊",
         items: pick("^KS11", "^KQ11", "USDKRW=X", "^VIX", "BTC-USD"),
       },
       {
@@ -52,13 +52,13 @@ function buildSections(
       {
         id: "commodity",
         title: "원자재",
-        emoji: "✨",
+        emoji: "⚡",
         items: pick("GC=F", "CL=F"),
       },
       {
         id: "rates",
         title: "금리 / 채권",
-        emoji: "💮",
+        emoji: "📈",
         items: pick("^TNX", "^IRX"),
       },
     ];
@@ -92,7 +92,7 @@ function buildSections(
       {
         id: "rates",
         title: "금리 / 채권",
-        emoji: "💮",
+        emoji: "📈",
         items: pick("^TNX", "^IRX"),
       },
     ];
@@ -150,7 +150,7 @@ export default function Dashboard() {
             {/* Title */}
             <div className="flex items-center gap-2.5">
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight gradient-title">
-                {mode === "kospi" ? "🌸 KOSPI 선행지표" : "🦅 NASDAQ 지수"}
+                {mode === "kospi" ? "📊 KOSPI 선행지표" : "🦅 NASDAQ 지수"}
               </h1>
               <span
                 className="hidden sm:block text-xs font-medium px-2 py-0.5 rounded-full border"
@@ -256,7 +256,7 @@ export default function Dashboard() {
         {loading ? (
           <div className="space-y-10">
             {[
-              { title: "🌸 핵심 지표", count: 5 },
+              { title: "📊 핵심 지표", count: 5 },
               { title: "🌍 글로벌 지수", count: 4 },
               { title: "✨ 원자재", count: 2 },
               { title: "💮 금리 / 채권", count: 2 },
@@ -319,7 +319,7 @@ export default function Dashboard() {
             className="text-xs mt-1"
             style={{ color: "var(--text-faint)", opacity: 0.6 }}
           >
-            🌸 Made with Next.js · Vercel
+            💻 Made with Next.js · Vercel
           </p>
         </footer>
       </div>

@@ -99,7 +99,7 @@ export async function GET() {
     {
       id: 'key',
       title: '핵심 지표',
-      emoji: '🌸',
+      emoji: '📊',
       items: pick('^KS11', '^KQ11', 'USDKRW=X', '^VIX', 'BTC-USD'),
     },
     {
@@ -111,13 +111,13 @@ export async function GET() {
     {
       id: 'commodity',
       title: '원자재',
-      emoji: '✨',
+      emoji: '⚡',
       items: pick('GC=F', 'CL=F'),
     },
     {
       id: 'rates',
       title: '금리 / 채권',
-      emoji: '💮',
+      emoji: '📈',
       items: pick('^TNX', '^IRX'),
     },
   ];
