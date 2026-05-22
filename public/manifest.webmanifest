@@ -4,7 +4,7 @@
   "description": "코스피·글로벌 지수·환율·VIX·러셀2000 실시간 대시보드",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f0812",
+  "background_color": "#fff5fb",
   "theme_color": "#ec4899",
   "orientation": "portrait-primary",
   "icons": [
