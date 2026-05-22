@@ -15,6 +15,8 @@ const SYMBOLS: Record<string, { name: string; suffix?: string }> = {
   '^VIX':     { name: 'VIX 공포지수' },
   'BTC-USD':  { name: '비트코인' },
   // 글로벌 지수
+  '^IXIC':    { name: '나스닥 종합' },
+  '^GSPC':    { name: 'S&P 500' },
   'NQ=F':     { name: '나스닥100 선물' },
   'ES=F':     { name: 'S&P500 선물' },
   'YM=F':     { name: '다우 선물' },
@@ -172,7 +174,7 @@ export async function GET() {
       id: 'global',
       title: '글로벌 지수',
       emoji: '🌍',
-      items: pick('NQ=F', 'ES=F', 'YM=F', 'RTY=F', '^RUT', '^SOX', '^N225'),
+      items: pick('^IXIC', '^GSPC', 'NQ=F', 'ES=F', 'YM=F', 'RTY=F', '^RUT', '^SOX', '^N225'),
     },
     {
       id: 'commodity',

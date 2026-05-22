@@ -47,7 +47,7 @@ function buildSections(
         id: "global",
         title: "글로벌 지수",
         emoji: "🌍",
-        items: pick("NQ=F", "ES=F", "YM=F", "^N225"),
+        items: pick("^IXIC", "^GSPC", "NQ=F", "ES=F", "YM=F", "^N225"),
       },
       {
         id: "commodity",
@@ -69,7 +69,7 @@ function buildSections(
         id: "us",
         title: "미국 지수",
         emoji: "🦅",
-        items: pick("NQ=F", "ES=F", "YM=F", "RTY=F", "^RUT"),
+        items: pick("^IXIC", "^GSPC", "NQ=F", "ES=F", "YM=F", "RTY=F", "^RUT"),
       },
       {
         id: "tech",
