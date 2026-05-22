@@ -1,0 +1,24 @@
+{
+  "name": "KOSPI 선행지표 대시보드",
+  "short_name": "선행지표",
+  "description": "코스피·글로벌 지수·환율·VIX·러셀2000 실시간 대시보드",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0812",
+  "theme_color": "#ec4899",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
