@@ -44,6 +44,12 @@ function buildSections(
         items: pick("^KS11", "^KQ11", "USDKRW=X", "^VIX", "CNN_FG", "BTC-USD"),
       },
       {
+        id: "domestic",
+        title: "국내 주요 주식",
+        emoji: "🇰🇷",
+        items: pick("005930.KS", "000660.KS", "005935.KS", "017670.KS", "105560.KS"),
+      },
+      {
         id: "global",
         title: "글로벌 지수",
         emoji: "🌍",

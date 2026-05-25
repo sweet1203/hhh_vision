@@ -14,6 +14,12 @@ const SYMBOLS: Record<string, { name: string; suffix?: string }> = {
   'USDKRW=X': { name: '원달러 환율' },
   '^VIX':     { name: 'VIX 공포지수' },
   'BTC-USD':  { name: '비트코인' },
+  // 국내 주요 주식
+  '005930.KS': { name: '삼성전자' },
+  '005935.KS': { name: '삼성전자우' },
+  '000660.KS': { name: 'SK하이닉스' },
+  '017670.KS': { name: 'SK텔레콤' },
+  '105560.KS': { name: 'KB금융' },
   // 글로벌 지수
   '^IXIC':    { name: '나스닥 종합' },
   '^GSPC':    { name: 'S&P 500' },
@@ -169,6 +175,12 @@ export async function GET() {
       title: '핵심 지표',
       emoji: '📊',
       items: pick('^KS11', '^KQ11', 'USDKRW=X', '^VIX', 'CNN_FG', 'BTC-USD'),
+    },
+    {
+      id: 'domestic',
+      title: '국내 주요 주식',
+      emoji: '🇰🇷',
+      items: pick('005930.KS', '000660.KS', '005935.KS', '017670.KS', '105560.KS'),
     },
     {
       id: 'global',
